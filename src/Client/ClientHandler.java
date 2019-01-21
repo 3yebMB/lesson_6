@@ -7,8 +7,11 @@ import javax.swing.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.Socket;
 import java.net.SocketException;
+
+import static java.lang.Thread.sleep;
 
 public class ClientHandler {
 
@@ -18,6 +21,7 @@ public class ClientHandler {
     private ServerTest server;
     private String nick;
     private String[] pMsg;
+    private boolean newClient = true;
 
     public ClientHandler(ServerTest server, Socket socket) {
         try {
@@ -38,8 +42,15 @@ public class ClientHandler {
                                 String newNick = AuthService.getNickLoginAndPass(tokens[1], tokens[2]);
                                 if (newNick != null) {
                                     sendMsg("/authok");
+                                    sendMsg("Приветствую тебя, "+newNick);
                                     nick = newNick;
-                                    server.subscribe(ClientHandler.this);
+                                    try {
+                                        server.subscribe(ClientHandler.this);
+                                    }
+                                    catch (AlreadyConnectedClient acc) {
+                                        acc.printStackTrace();
+                                        return;
+                                    }
                                     break;
                                 } else {
                                     sendMsg("Неверный логин/пароль!");
@@ -55,18 +66,15 @@ public class ClientHandler {
                             }
                             if (str.contains("/w")){
                                 pMsg = str.split(" ", 3);
-                                //if (pMsg[1].equals(nick))
-                                    server.broadcastMsg(pMsg[2], pMsg[1]);
+                                    server.broadcastMsg(pMsg[2], nick + " : " + pMsg[1]);
                             }
                             else
-                                server.broadcastMsg(str, null);
+                                server.broadcastMsg(nick + " : " + str, null);
                         }
                     } catch (SocketException se) {
-//                        se.printStackTrace();
                         System.out.println("Клиент " + nick + " отключился.");
                     } catch (IOException e) {
                         e.printStackTrace();
-//                        System.out.println("2");
                     } finally {
                         try {
                             in.close();
@@ -93,9 +101,6 @@ public class ClientHandler {
         }
     }
 
-    private void parseMsg(String str) {
-    }
-
     public String getNick() {
         return nick;
     }
@@ -107,4 +112,5 @@ public class ClientHandler {
             e.printStackTrace();
         }
     }
+
 }

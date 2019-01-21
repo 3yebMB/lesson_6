@@ -1,16 +1,15 @@
 package Lesson_6.Server;
 
+import Lesson_6.Client.AlreadyConnectedClient;
 import Lesson_6.Client.ClientHandler;
-import Lesson_6.Client.Controller;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.Iterator;
 import java.util.Vector;
+
+import static java.lang.Thread.sleep;
 
 public class ServerTest {
     private Vector<ClientHandler> clients;
@@ -28,8 +27,12 @@ public class ServerTest {
             while (true) {
                 socket = server.accept();
                 ClientHandler ch = new ClientHandler(this,socket);
+                try {
+                    sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 System.out.println("Клиент " + ch.getNick() + " подключился");
-//                new ClientHandler(this,socket);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,14 +51,21 @@ public class ServerTest {
         }
     }
 
-     public void subscribe(ClientHandler client) {
-//         for (ClientHandler c: clients) {
-//             if (!c.getNick().equals(client.getNick())){
-                 clients.add(client);
-//             }
-//         }
+     public void subscribe(ClientHandler client) throws AlreadyConnectedClient {
+         String connectedUser = client.getNick();
 
-    }
+         if (clients.size() == 0) {
+             clients.add(client);
+         } else {
+             for (int i = clients.size()-1; i >= 0; i--) {
+                 if (clients.elementAt(i).getNick().equals(connectedUser)) {
+                     throw new AlreadyConnectedClient();
+                 } else clients.add(client);
+
+             }
+         }
+     }
+
 
     public void unsubscribe(ClientHandler client) {
         clients.remove(client);
@@ -71,9 +81,10 @@ public class ServerTest {
                 continue;
             }
             else {
-                o.sendMsg(msg);
+                String[] myMsg = msg.split(" : ");
+                if (myMsg[0].equals(o.getNick())) o.sendMsg("Я : " + myMsg[1]);
+                else o.sendMsg(msg);
             }
-
         }
     }
 }

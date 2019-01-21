@@ -9,6 +9,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -40,6 +42,7 @@ public class Controller {
     DataInputStream in;
     DataOutputStream out;
     private boolean isAuthorized;
+    private String nick;
 
     final String IP_ADRESS = "localhost";
     final int PORT = 8189;
@@ -75,7 +78,6 @@ public class Controller {
                             if(str.startsWith("/authok")) {
                                 setAuthorized(true);
                                 textArea.clear();
-//                                textField.requestFocus();
                                 break;
                             } else {
                                 textArea.appendText(str + "\n");
@@ -84,7 +86,10 @@ public class Controller {
 
                         while (true) {
                             String str = in.readUTF();
-                            if(str.equals("/serverClosed")) break;
+                            if(str.equals("/serverClosed")) {
+                                textArea.clear();
+                                break;
+                            }
                             textArea.appendText(str + "\n");
                         }
 
@@ -104,11 +109,9 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public void sendMsg() {
-       // textArea.appendText(textField.getText() + "\n");
         try {
             out.writeUTF(textField.getText());
             textField.clear();
@@ -131,5 +134,4 @@ public class Controller {
             e.printStackTrace();
         }
     }
-
 }
