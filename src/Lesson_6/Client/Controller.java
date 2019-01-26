@@ -1,6 +1,4 @@
 package Lesson_6.Client;
-
-								   
 								
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -17,7 +15,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
-
 
 public class Controller {
     @FXML
@@ -147,6 +144,10 @@ public class Controller {
         }
     }
 
+	public void createWindow() throws IOException {
+//        MiniStage miniStage = new MiniStage();
+//        miniStage.show();
+    }
     public void sendMsg() {
         try {
             out.writeUTF(textField.getText());
@@ -157,7 +158,22 @@ public class Controller {
         }
     }
 
-    public void tryToAuth(ActionEvent actionEvent) {
+//    public void tryToAuth(ActionEvent actionEvent) {
+//
+//        if(socket == null || socket.isClosed()) {
+//            connect();
+//        }
+//
+//        try {
+//            out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
+//            loginField.clear();
+//            passwordField.clear();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    public void tryToAuth(javafx.event.ActionEvent actionEvent) {
 
         if(socket == null || socket.isClosed()) {
             connect();

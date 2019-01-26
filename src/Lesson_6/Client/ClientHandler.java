@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
 
@@ -22,6 +23,7 @@ public class ClientHandler {
     private String nick;
     private String[] pMsg;
     private boolean newClient = true;
+    ArrayList<String> blackList;
 
     public ClientHandler(ServerTest server, Socket socket) {
         try {
@@ -29,6 +31,7 @@ public class ClientHandler {
             this.server = server;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
+			this.blackList = new ArrayList<>();
 
             new Thread(new Runnable() {
                 @Override
@@ -41,17 +44,19 @@ public class ClientHandler {
                                 String[] tokens = str.split(" ");
                                 String newNick = AuthService.getNickLoginAndPass(tokens[1], tokens[2]);
                                 if (newNick != null) {
+									if(!server.isNickBusy(newNick)) {								 
                                     sendMsg("/authok");
                                     sendMsg("Приветствую тебя, "+newNick);
                                     nick = newNick;
-                                    try {
+//                                    try {
                                         server.subscribe(ClientHandler.this);
-                                    }
-                                    catch (AlreadyConnectedClient acc) {
-                                        acc.printStackTrace();
-                                        return;
-                                    }
+//                                    }
+//                                    catch (AlreadyConnectedClient acc) {
+//                                        acc.printStackTrace();
+//                                        return;
+//                                    }
                                     break;
+									}
                                 } else {
                                     sendMsg("Неверный логин/пароль!");
                                 }
@@ -66,10 +71,15 @@ public class ClientHandler {
                             }
                             if (str.contains("/w")){
                                 pMsg = str.split(" ", 3);
-                                    server.broadcastMsg(pMsg[2], nick + " : " + pMsg[1]);
+                                server.sendPersonalMsg(ClientHandler.this, pMsg[1], pMsg[2]);    //server.broadcastMsg(pMsg[2], nick + " : " + pMsg[1]);
                             }
-                            else
-                                server.broadcastMsg(nick + " : " + str, null);
+							if(str.startsWith("/blacklist ")) {
+                                    String[] tokens = str.split(" ");
+                                    blackList.add(tokens[1]);
+                                    sendMsg("Вы добавили пользователя " + tokens[1] + " в черный список");
+                                }
+                            else server.broadcastMsg(ClientHandler.this,nick + ": " + str);
+                                //server.broadcastMsg(nick + " : " + str, null);
                         }
                     } catch (SocketException se) {
                         System.out.println("Клиент " + nick + " отключился.");
@@ -99,6 +109,10 @@ public class ClientHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+	
+	public boolean checkBlackList(String nick) {
+        return blackList.contains(nick);
     }
 
     public String getNick() {
