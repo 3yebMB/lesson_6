@@ -1,12 +1,12 @@
 package Lesson_6.Client;
 
+								   
+								
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.PointLight;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
 import java.awt.event.ActionEvent;
@@ -38,6 +38,9 @@ public class Controller {
     @FXML
     PasswordField passwordField;
 
+	@FXML
+    ListView<String> clientList;
+
     Socket socket;
     DataInputStream in;
     DataOutputStream out;
@@ -47,6 +50,8 @@ public class Controller {
     final String IP_ADRESS = "localhost";
     final int PORT = 8189;
 
+								 
+
     public void setAuthorized(boolean isAuthorized) {
         this.isAuthorized = isAuthorized;
         if(!isAuthorized) {
@@ -54,11 +59,15 @@ public class Controller {
             upperPanel.setManaged(true);
             bottomPanel.setVisible(false);
             bottomPanel.setManaged(false);
+			clientList.setVisible(false);
+            clientList.setManaged(false);
         } else {
             upperPanel.setVisible(false);
             upperPanel.setManaged(false);
             bottomPanel.setVisible(true);
             bottomPanel.setManaged(true);
+			clientList.setVisible(true);
+            clientList.setManaged(true);							
         }
     }
 
@@ -86,12 +95,39 @@ public class Controller {
 
                         while (true) {
                             String str = in.readUTF();
-                            if(str.equals("/serverClosed")) {
-                                textArea.clear();
-                                break;
+													 
+                            if(str.startsWith("/")) {
+                                if (str.equals("/serverClosed")) break;
+                                if(str.startsWith("/clientlist")) {
+                                    String[] tokens = str.split(" ");
+
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            clientList.getItems().clear();
+                                            for (int i = 1; i < tokens.length; i++) {
+                                                clientList.getItems().add(tokens[i]);
+                                            }
+                                        }
+                                    });
+                                }
+                            } else {
+                                textArea.appendText(str + "\n");
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+//                                        try {
+//                                            createWindow();
+//                                        } catch (IOException e) {
+//                                            e.printStackTrace();
+//                                        }
+                                    }
+                                });
+
                             }
-                            textArea.appendText(str + "\n");
+															
                         }
+
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -121,11 +157,12 @@ public class Controller {
         }
     }
 
+    public void tryToAuth(ActionEvent actionEvent) {
 
-    public void tryToAuth() {
         if(socket == null || socket.isClosed()) {
             connect();
         }
+
         try {
             out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
             loginField.clear();
