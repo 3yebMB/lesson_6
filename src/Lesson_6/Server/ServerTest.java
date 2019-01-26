@@ -27,7 +27,10 @@ public class ServerTest {
 
             while (true) {
                 socket = server.accept();
-                ClientHandler ch = new ClientHandler(this,socket);
+                if (socket==null) {
+                    break;
+                }
+                ClientHandler ch = new ClientHandler(this, socket);
                 try {
                     sleep(50);
                 } catch (InterruptedException e) {
@@ -51,6 +54,7 @@ public class ServerTest {
             }
             AuthService.disconnect();
         }
+
     }
 
     public boolean isNickBusy(String nick) {
@@ -87,7 +91,7 @@ public class ServerTest {
     public void broadcastMsg (ClientHandler from, String msg) { //(String msg, String name) {
         for (ClientHandler o: clients) {
 			if(!o.checkBlackList(from.getNick())) {
-											   
+//				if (o.getNick().equals())
                 o.sendMsg(msg);
             }
 //            if (name != null) {

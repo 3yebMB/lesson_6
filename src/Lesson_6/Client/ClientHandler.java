@@ -23,9 +23,12 @@ public class ClientHandler {
     private String nick;
     private String[] pMsg;
     private boolean newClient = true;
+    private long timeDoNothing;
     ArrayList<String> blackList;
 
     public ClientHandler(ServerTest server, Socket socket) {
+        timeDoNothing = System.currentTimeMillis();
+
         try {
             this.socket = socket;
             this.server = server;
@@ -38,6 +41,7 @@ public class ClientHandler {
                 public void run() {
                     try {
                         while (true) {
+
                             String str = in.readUTF();
 
                             if (str.startsWith("/auth")) {
@@ -103,15 +107,15 @@ public class ClientHandler {
                         }
                         server.unsubscribe(ClientHandler.this);
                     }
-
                 }
             }).start();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-	
-	public boolean checkBlackList(String nick) {
+
+    public boolean checkBlackList(String nick) {
         return blackList.contains(nick);
     }
 

@@ -145,8 +145,8 @@ public class Controller {
     }
 
 	public void createWindow() throws IOException {
-//        MiniStage miniStage = new MiniStage();
-//        miniStage.show();
+        MiniStage miniStage = new MiniStage();
+        miniStage.show();
     }
     public void sendMsg() {
         try {
